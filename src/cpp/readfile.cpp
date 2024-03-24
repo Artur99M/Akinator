@@ -1,48 +1,89 @@
-#include <stdio.h>
-#include <sys/stat.h>
-#include <string.h>
-#include <stdlib.h>
-#include "../header/tree.h"
 #include "../header/readfile.h"
 #include "../Onegin/header/readtext.h"
+#include "../Onegin/header/txtdtor.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <unistd.h>
+#define LEAF '*'
+#define IN_BRANCH '{'
+#define OUT_BRANCH '}'
+
+TREE_ERROR TreeRead (Node* pNode, text* txt, size_t* nline, Node* array);
 
 
-TREE_ERROR readfile (Node* Tree, char* file)
+TREE_ERROR readfile (Node** Tree, char* file)
 {
-    if (Tree == nullptr)   return TREE_NULLPTR;
-    FILE* infile = fopen (file, "r");
-    if (infile == nullptr) return TREE_INFILE_NULLPTR;
+    if (Tree == nullptr) return TREE_NULLPTR;
 
-    TREE_ERROR ERROR = AkinatorTreeCtor (Tree, infile);
+    text txt;
+    readtext (&txt, file);
+    size_t nline = 0;
+    Node* array = (Node*) calloc (txt.numlines, sizeof (Node));
+    *Tree = array;
+    TREE_ERROR ERROR = TreeRead (*Tree, &txt, &nline, array);
+    // printf ("readfile >>> finish\n");
+
+    txtDtor (&txt);
+
     return ERROR;
 }
 
-TREE_ERROR AkinatorTreeCtor (Node* Tree, FILE* infile)
+TREE_ERROR TreeRead (Node* pNode, text* txt, size_t* nline, Node* array)
 {
-    char c = getc (infile);
-    if (c == EOF || c == '}') return TREE_NO_ERROR;
-    char* str_left = (char*) calloc (1, MAX_STR_SIZE);
+    usleep (1);
+    if (pNode == nullptr || txt == nullptr || nline == nullptr || array == nullptr)
+        return TREE_NULLPTR;
+
+
+    char c = '\0';
+    // printf ("TreeRead >>> I start sscanf\n");
+    // printf ("TreeRead >>> pNode = %p\n", pNode);
+    // printf ("TreeRead >>> txt->line[*nline].str = \"%s\"\n", txt->line[*nline].str);
+    sscanf (txt->line[*nline].str, "%c", &c);
+    // printf ("TreeRead >>> first sscanf: c = %c\n", c);
+    (*nline)++;
+
     if (c == '{')
     {
-        if (strlen (fgets(str_left, MAX_STR_SIZE, infile)) > 2)
-        {
-            Tree->left = (Node*) calloc (1, sizeof (Node));
-            Tree->left->value = str_left;
-            AkinatorTreeCtor (Tree->left, infile);
-        }
+        // printf ("TreeRead >>> func start do it smth\n");
+        sscanf (txt->line[*nline].str, "%lu", &(pNode->value.line));
+        (*nline)++;
+        // printf ("TreeRead >>> value = %d\n", pNode->value);
+        // printf ("TreeRead >>> find memmory for left\n");
+        // printf ("TreeRead >>> &(pNode->left) = %p\n", &(pNode->left));
+        pNode->left = array + (*nline);
+        // printf ("TreeRead >>> start see left\n");
+        // printf ("TreeRead >>> pNode->left = %p\n", pNode->left);
+        if (TreeRead (pNode->left, txt, nline, array) == TREE_VOID)
+            pNode->left = nullptr;
+        // printf ("TreeRead >>> finish see left\n");
+        // printf ("TreeRead >>> pNode->left = %p\n", pNode->left);
+        // printf ("TreeRead >>> find memmory for right\n");
+        // printf ("TreeRead >>> &(pNode->right) = %p\n", &(pNode->right));
+        pNode->right = array + (*nline);
+        // printf ("TreeRead >>> pNode->right = %p\n", pNode->right);
+        // printf ("TreeRead >>> start see right\n");
+        if (TreeRead (pNode->right, txt, nline, array) == TREE_VOID)
+            pNode->right = nullptr;
+        // printf ("TreeRead >>> finish see right\n");
+        // printf ("TreeRead >>> pNode->right = %p\n", pNode->right);
+        sscanf (txt->line[*nline].str, "%c", &c);
+        // printf ("TreeRead >>> third sscanf: c = %c\n", c);
+        if (c != '}')
+            return TREE_HZ_ERROR;
+        (*nline)++;
+    }
+    else if (c == '*')
+    {
+        // printf ("TreeRead >>> free memory\n");
+        return TREE_VOID;
+    }
+    else
+    {
+        // printf ("TreeRead >>> Strange ERROR\n");
+        return TREE_HZ_ERROR;
     }
 
-    c = getc (infile);
-    if (c == EOF) return TREE_NO_ERROR;
-    char* str_right = (char*) calloc (1, MAX_STR_SIZE);
-    if (c == '\\' && getc (infile) == '{')
-    {
-        if (strlen (fgets(str_right, MAX_STR_SIZE, infile)) > 2)
-        {
-            Tree->right = (Node*) calloc (1, sizeof (Node));
-            Tree->right->value = str_right;
-            AkinatorTreeCtor (Tree->right, infile);
-        }
-    }
     return TREE_NO_ERROR;
 }

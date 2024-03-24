@@ -2,8 +2,12 @@
 #define TREE_H
 #define  LEFT_NODE 1
 #define RIGHT_NODE 2
-#define MAX_STR_SIZE 64
-typedef char* elem_t;
+#include <stdio.h>
+typedef struct elem_t
+{
+    size_t line;
+    char* str;
+} elem_t;
 
 typedef struct Node
 {
@@ -11,8 +15,6 @@ typedef struct Node
     Node* left;
     Node* right;
 } Node;
-
-typedef Node* TREE;
 
 enum TREE_ERROR
 {
@@ -24,7 +26,9 @@ enum TREE_ERROR
     TREE_ADD_ERROR = 16,
     ELEM_IS_VALUE_OF_NODE_OF_TREE = 32,
     TREE_FILE_NULLPTR = 64,
-    TREE_INFILE_NULLPTR = 128
+    TREE_INFILE_NULLPTR = 128,
+    TREE_HZ_ERROR = 256,
+    TREE_VOID = 512
 };
 
 TREE_ERROR TreeAdd (Node*, const elem_t*);
