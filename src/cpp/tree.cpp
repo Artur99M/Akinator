@@ -41,16 +41,14 @@ TREE_ERROR TreePrint (const Node* Tree)
     if (Tree == nullptr)
         return TREE_NULLPTR;
 
-    printf ("{%s\n", Tree->value);
+    printf ("{\n%s\n", Tree->value);
 
     if (Tree->left != nullptr)
         TreePrint (Tree->left);
-
+    else puts ("*");
     if (Tree->right != nullptr)
-    {
-        putchar ('\\');
         TreePrint (Tree->right);
-    }
+    else puts ("*");
 
     puts ("}");
 
@@ -108,30 +106,20 @@ TREE_ERROR TreeDelete (Node* Tree, const elem_t* elem)
 
     if (Tree->value == *elem)
     {
-//         prevNode = Tree;
-//         if (Tree->left != nullptr && Tree->right != nullptr)
-//         {
-//             TreeAddNode (Tree->left, Tree->right);
-//             Tree = Tree->left;
-//         }
-//         else if (Tree->left != nullptr)
-//             Tree = Tree->left;
-//         else if (Tree->right != nullptr)
-//             Tree = Tree->right;
-//
-//         free (prevNode);
         return ELEM_IS_VALUE_OF_NODE_OF_TREE;
     }
 
     while (Tree->value != *elem)
         if (*elem <= Tree->value)
-            if (Tree->left != nullptr)
-            {
-                prevNode = Tree;
-                Tree = Tree->left;
-                Tree_left_or_right = 1;
-            }
-            else return TREE_NO_ELEM;
+        {
+            if (Tree->left == nullptr)
+                return TREE_NO_ELEM;
+
+            prevNode = Tree;
+            Tree = Tree->left;
+            Tree_left_or_right = 1;
+        }
+
         else
             if (Tree->right != nullptr)
             {

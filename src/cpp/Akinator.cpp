@@ -1,4 +1,6 @@
 #include "../header/Akinator.h"
+#include "../header/readfile.h"
+#include "../Onegin/header/readtext.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
